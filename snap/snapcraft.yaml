@@ -1,0 +1,100 @@
+name: rosboard
+version: '0.1'
+summary: ROS node that turns your robot into a web server to visualize ROS topics
+description: |
+  ROS node that runs a web server on your robot. Run the node,
+  point your web browser at http://your-robot-ip:8888/ and you get nice visualizations.
+
+  ROS1/ROS2 compatible. This package will work in either ROS version.
+
+  *Mobile friendly*. Designed so you can walk around next to your robot with a phone while viewing ROS topics.
+
+  *Light weight*. Doesn't depending on much. Consumes extremely little resources when it's not actually being used.
+
+  *Easily extensible*. Easily code a visualization for a custom type by only adding only one .js file and referncing it inside the top of index.js.
+
+  You can run it on your desktop too and play a ROS bag.
+
+  Also be sure to check out my terminal visualization tool, [ROSshow](https://github.com/dheera/rosshow/).
+
+  To install `rosboard` as a snap simply run:
+
+  ```terminal
+  snap install rosboard
+  ```
+
+  You can immediately run it with:
+
+  ```terminal
+  rosboard
+  ```
+
+  All ROS topics visualizers are readily available.
+
+  Note:
+
+  *The following is optional and only necessary if you use the related visualizers*.
+
+  In order to use the 'SYSTEM: Processes' visualizer,
+  you need to connect the snap `login-session-observe` interface as follows:
+
+  ```terminal
+  snap connect rosboard:login-session-observe
+  ```
+
+  Similarly, to use the 'SYSTEM: dmesg' visualizer you need to run,
+
+  ```terminal
+  snap connect rosboard:rosboard-dmesg
+  snap connect rosboard:system-observe
+  ```
+
+  The later interface is actually optional and only silences some warnings on 'SYSTEM: dmesg' issued from the 'SYSTEM: Processes' visualizer.
+
+  At last, the 'SYSTEM: System stat' visualizer requires the following interface:
+
+  ```terminal
+  snap connect rosboard:hardware-observe
+  ```
+
+grade: stable
+confinement: strict
+base: core20 # Noetic
+
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+  - build-on: armhf
+
+# dmesg needs read-only access to /dev/kmsg
+# which is not covered by any plug at the moment
+plugs:
+  rosboard-dmesg:
+    interface: system-files
+    read: [/dev/kmsg]
+
+parts:
+
+  rosboard:
+    plugin: catkin
+    source: .
+    stage-packages:
+      - procps # for top
+      - util-linux # for dmesg
+      - ros-noetic-rosbash # for rosrun
+
+apps:
+
+  rosboard:
+    command: opt/ros/noetic/bin/rosrun rosboard rosboard_node
+    plugs:
+      - network # ROS messages
+      - network-bind # ROS messages
+      - login-session-observe # top
+      - system-observe # optional: silences some apparmor warning on dmesg from top
+      - rosboard-dmesg # dmesg read-only access to /dev/kmsg
+      - hardware-observe # psutil reading temps
+    extensions: [ros1-noetic]
+    environment:
+      "LD_LIBRARY_PATH": "$LD_LIBRARY_PATH:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/blas:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/lapack"
+      "ROS_HOME": "$SNAP_USER_DATA" # remap HOME for rospack
