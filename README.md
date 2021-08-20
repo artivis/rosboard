@@ -46,6 +46,48 @@ For ROS 1, run it with `rosrun rosboard rosboard_node` or put it in your launch 
 
 For ROS 2, run it with `ros2 run rosboard rosboard_node` or put it in your launch file.
 
+## Installing it as a snap
+
+To install `rosboard` as a snap simply run:
+
+```terminal
+snap install rosboard
+```
+
+You can immediately run it with:
+
+```terminal
+rosboard
+```
+
+All ROS topics visualizers are readily available.
+
+### Note
+
+The following is optional and only necessary if you use the related visualizers.
+
+In order to use the 'SYSTEM: Processes' visualizer,
+you need to connect the snap `login-session-observe` interface as follows:
+
+```terminal
+snap connect rosboard:login-session-observe
+```
+
+Similarly, to use the 'SYSTEM: dmesg' visualizer you need to run,
+
+```terminal
+snap connect rosboard:rosboard-dmesg
+snap connect rosboard:system-observe
+```
+
+The later interface is actually optional and only silences some warnings on 'SYSTEM: dmesg' issued from the 'SYSTEM: Processes' visualizer.
+
+At last, the 'SYSTEM: System stat' visualizer requires the following interface:
+
+```terminal
+snap connect rosboard:hardware-observe
+```
+
 ## FAQ
 
 **How do I write a visualizer for a custom type?**
